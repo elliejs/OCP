@@ -365,6 +365,9 @@ exclude = ["Standard_Handle.hxx","Standard", "Standard_MemoryUtils.hxx",
            "Graphic3d_MapIteratorOfMapOfStructure.hxx",
            "TObj_Container.hxx",
            "BOPDS_DataMapOfIntegerListOfPaveBlock.hxx",
+           "BOPDS_VectorOfListOfPaveBlock.hxx",
+           "BOPDS_IndexedDataMapOfPaveBlockListOfPaveBlock.hxx",
+           "BOPDS_DataMapOfPaveBlockListOfPaveBlock.hxx",
            ]
 #           "BVH_Box.hxx","BVH_tools.hxx"
 
