@@ -360,7 +360,8 @@ exclude = ["Standard_Handle.hxx","Standard", "Standard_MemoryUtils.hxx",
            "BRepMesh_NURBSRangeSplitter.hxx","BRepMesh_SphereRangeSplitter.hxx",
            "BRepMesh_TorusRangeSplitter.hxx","BRepMesh_UVParamRangeSplitter.hxx","OpenGl_GLESExtensions.hxx",
            "IVtk_IShapePickerAlgo.hxx","ProjLib_HCompProjectedCurve.hxx","ProjLib_HProjectedCurve.hxx",
-           "OSD_StreamBuffer.hxx","IntSurf_Allocator.hxx","Extrema_GGenExtCC.hxx"
+           "OSD_StreamBuffer.hxx","IntSurf_Allocator.hxx","Extrema_GGenExtCC.hxx",
+           "NCollection_ForwardRange.hxx"
            ]
 #           "BVH_Box.hxx","BVH_tools.hxx"
 
@@ -483,11 +484,35 @@ void register_template_NCollection_Vector(py::object &m, const char *name){
 
         [Modules.NCollection.Templates.NCollection_DataMap]
 
-        exclude_methods = ["Bound", "Seek", "ChangeSeek"]
+        exclude_methods = ["Bound", "Seek", "ChangeSeek", "Contained"]
 
         [Modules.NCollection.Templates.NCollection_IndexedDataMap]
 
-        exclude_methods = ["Seek", "ChangeSeek"]
+        exclude_methods = ["Seek", "ChangeSeek", "Contained"]
+
+        [Modules.NCollection.Templates.NCollection_Map]
+
+        exclude_methods = ["Contained"]
+
+        [Modules.NCollection.Templates.NCollection_IndexedMap]
+
+        exclude_methods = ["Contained"]
+
+        [Modules.NCollection.Templates.NCollection_FlatDataMap]
+
+        exclude_methods = ["Contained"]
+
+        [Modules.NCollection.Templates.NCollection_FlatMap]
+
+        exclude_methods = ["Contained"]
+
+        [Modules.NCollection.Templates.NCollection_OrderedDataMap]
+
+        exclude_methods = ["Contained"]
+
+        [Modules.NCollection.Templates.NCollection_OrderedMap]
+
+        exclude_methods = ["Contained"]
 
         [Modules.NCollection.parsing_headers]
 
