@@ -361,7 +361,10 @@ exclude = ["Standard_Handle.hxx","Standard", "Standard_MemoryUtils.hxx",
            "BRepMesh_TorusRangeSplitter.hxx","BRepMesh_UVParamRangeSplitter.hxx","OpenGl_GLESExtensions.hxx",
            "IVtk_IShapePickerAlgo.hxx","ProjLib_HCompProjectedCurve.hxx","ProjLib_HProjectedCurve.hxx",
            "OSD_StreamBuffer.hxx","IntSurf_Allocator.hxx","Extrema_GGenExtCC.hxx",
-           "NCollection_ForwardRange.hxx"
+           "NCollection_ForwardRange.hxx",
+           "Graphic3d_MapIteratorOfMapOfStructure.hxx",
+           "TObj_Container.hxx",
+           "BOPDS_DataMapOfIntegerListOfPaveBlock.hxx",
            ]
 #           "BVH_Box.hxx","BVH_tools.hxx"
 
