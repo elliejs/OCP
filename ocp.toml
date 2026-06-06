@@ -384,6 +384,8 @@ exclude_collection = [
 "Vec3_size_t",
 "Vec2_unsigned  int",
 "Sequence_const gp_Pnt2d",
+"IndexedDataMap_Standard_Transient_Standard_Transient",
+"IndexedDataMap_TCollection_AsciiString_Standard_Transient"
 ]
 
 collection_pattern = "NCollection"
@@ -1614,3 +1616,23 @@ using rapidjson::BasicOStreamWrapper;"""
         #include  <Bnd_Box.hxx>
         """
 
+
+    [Modules.XBRepMesh]
+
+        include_header_pre = """
+        #include <TopoDS_Shape.hxx>
+        #include <BRepMesh_DiscretRoot.hxx>
+        """
+
+    [Modules.Geom2d]
+
+        include_header_pre = """
+        #include <Geom2dEval_RepCurveDesc.hxx>
+        """
+
+    [Modules.Geom]
+
+        include_header_pre = """
+        #include <GeomEval_RepSurfaceDesc.hxx>
+        #include <GeomEval_RepCurveDesc.hxx>
+        """
