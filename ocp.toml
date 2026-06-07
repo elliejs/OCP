@@ -555,7 +555,14 @@ void register_template_NCollection_Vector(py::object &m, const char *name){
             "TCollection_AsciiString::operator<",
             "TCollection_AsciiString::operator>",
             "TCollection_AsciiString::operator+=",
-            "TCollection_AsciiString::operator+", ] 
+            "TCollection_AsciiString::operator+", 
+            "TCollection_ExtendedString::operator+=",
+            "TCollection_ExtendedString::AssignCat",
+            ] 
+
+        [Modules.TCollection.Classes.TCollection_ExtendedString]
+
+            exclude_constructors = [12]
 
     [Modules.TColStd]
 
