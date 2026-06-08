@@ -562,7 +562,7 @@ void register_template_NCollection_Vector(py::object &m, const char *name){
 
         [Modules.TCollection.Classes.TCollection_ExtendedString]
 
-            exclude_constructors = [12]
+            exclude_constructors = [11]
 
     [Modules.TColStd]
 
@@ -803,7 +803,7 @@ struct Aspect_XVisualInfo {};
 
         [Modules.Aspect.Classes.Aspect_DisplayConnection]
 
-            exclude_constructors = [2]
+            exclude_constructors = [1]
 
     [Modules.SelectMgr]
 
@@ -1271,7 +1271,7 @@ using std::char_traits;
 
         [Modules.Message.Classes.Message_ProgressScope]
 
-            exclude_constructors = [2]
+            exclude_constructors = [1]
 
     [Modules.RWGltf]
 
