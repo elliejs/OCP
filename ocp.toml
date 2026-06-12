@@ -562,7 +562,7 @@ void register_template_NCollection_Vector(py::object &m, const char *name){
 
         [Modules.TCollection.Classes.TCollection_ExtendedString]
 
-            exclude_constructors = [11]
+            exclude_constructors = ["string_view"]
 
     [Modules.TColStd]
 
