@@ -368,6 +368,7 @@ exclude = ["Standard_Handle.hxx","Standard", "Standard_MemoryUtils.hxx",
            "BOPDS_VectorOfListOfPaveBlock.hxx",
            "BOPDS_IndexedDataMapOfPaveBlockListOfPaveBlock.hxx",
            "BOPDS_DataMapOfPaveBlockListOfPaveBlock.hxx",
+           "NCollection_ItemsView.hxx",
            ]
 #           "BVH_Box.hxx","BVH_tools.hxx"
 
