@@ -824,7 +824,7 @@ struct NSOpenGLContext {};"""
                            "OpenGl_DepthPeeling::DetachDepthTexture", "OpenGl_DepthPeeling::DepthPeelFbosOit",
                            "OpenGl_DepthPeeling::FrontBackColorFbosOit"]
         exclude_typedefs = ["OpenGl_SequenceOfLayers","OpenGl_SetterList","OpenGl_MapOfHatchStylesAndIds","OpenGl_MapOfZLayerSettings","OpenGl_IndexedMapOfStructure","OpenGl_MapOfShaderPrograms","OpenGl_IndexedMapOfStructure","OpenGl_LayerSeqIds"]
-        exclude_classes = ["OpenGl_GraduatedTrihedron","OpenGl_LayerList","OpenGl_VariableSetterSelector","OpenGl_RaytraceGeometry"]
+        exclude_classes = ["OpenGl_GraduatedTrihedron","OpenGl_LayerList","OpenGl_VariableSetterSelector","OpenGl_RaytraceGeometry", "OpenGl_SetterInterface"]
 
         [Modules.OpenGl.parsing_headers]
 
