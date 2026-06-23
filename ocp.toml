@@ -390,6 +390,14 @@ class Adaptor3d_Surface;
     exclude_classes = ["Handle_*"]
     symbols = "symbols_mangled_win.dat"
 
+[FreeBSD]
+    modules = ["Xw"]
+    symbols = "symbols_mangled_freebsd.dat"
+    includes = ['/usr/include/c++/v1',
+                '/usr/local/llvm-devel/lib/clang/22/include',
+                '/usr/local/include',
+                '/usr/include']
+
 [OSX]
     modules = ["Cocoa"]
     symbols = "symbols_mangled_mac.dat"
@@ -434,6 +442,7 @@ class Adaptor3d_Surface;
 
     [Modules.Standard]
 
+        include_header_pre = "using TPCallBackFunc = Standard_MMgrOpt::TPCallBackFunc;"
         exclude_functions = ["HashCode"]
         exclude_methods = ["Standard_Dump::DumpCharacterValues","Standard_Dump::DumpRealValues",
             "Standard_CLocaleSentry::GetCLocale","Standard_Dump::InitRealValues", "Standard_ErrorHandler::Label"]
@@ -474,6 +483,8 @@ void register_template_NCollection_Vector(py::object &m, const char *name){
 
     [Modules.OSD]
 
+        include_header_pre = """using LogFileHandler = OSD_MAllocHook::LogFileHandler;
+using CollectBySize = OSD_MAllocHook::CollectBySize;"""
         exclude_functions = ["OSD","OSD_OpenStream"]
         exclude_classes = ["OSD","OSD_FileSystem","OSD_CachedFileSystem","OSD_FileSystemSelector","OSD_LocalFileSystem"]
         exclude_methods = ["OSD_SharedLibrary::DlSymb"]
@@ -736,7 +747,8 @@ py::implicitly_convertible<std::string, TCollection_AsciiString>();"""
         include_header_pre = """struct __GLXFBConfigRec {};
 struct Aspect_XVisualInfo {};
 #include <WNT_HIDSpaceMouse.hxx>
-"""
+using InfoString = Aspect_XRSession::InfoString;
+using TrackingUniverseOrigin = Aspect_XRSession::TrackingUniverseOrigin;"""
         exclude_methods = ["Aspect_NeutralWindow::NativeFBConfig","Aspect_Window::NativeFBConfig","Aspect_NeutralWindow::SetNativeHandles","Aspect_DisplayConnection::GetDisplay","Aspect_DisplayConnection::Init"]
         exclude_typedefs = ["Aspect_XRActionSetMap","Aspect_XRActionMap"]
 
@@ -746,6 +758,7 @@ struct Aspect_XVisualInfo {};
 
     [Modules.SelectMgr]
 
+        include_header_pre = "using BVHThread = SelectMgr_BVHThreadPool::BVHThread;"
         exclude_typedefs = ["SelectMgr_IndexedMapOfOwner","SelectMgr_MapOfObjectSensitives","SelectMgr_FrustumCache","SelectMgr_IndexedMapOfHSensitive"]
 
     [Modules.OpenGl]
@@ -789,7 +802,9 @@ struct NSOpenGLContext {};"""
 
         include_header_pre = """#include <Media_PlayerContext.hxx>
 #include <WNT_HIDSpaceMouse.hxx>
-auto OptionsForAttach = [](){return AIS_Manipulator::OptionsForAttach();};"""
+using OptionsForAttach = AIS_Manipulator::OptionsForAttach;
+using ManipulatorSkin = AIS_Manipulator::ManipulatorSkin;
+using BehaviorOnTransform = AIS_Manipulator::BehaviorOnTransform;"""
         include_body_pre = "py::class_<AIS_Manipulator::OptionsForAttach>(m,\"AIS_Manipulator_OptionsForAttach\");"
         exclude_typedefs = ["AIS_DataMapOfShapeDrawer","AIS_DataMapOfIOStatus","AIS_DataMapOfILC","AIS_IndexedDataMapOfOwnerPrs"]
 
@@ -817,7 +832,9 @@ auto OptionsForAttach = [](){return AIS_Manipulator::OptionsForAttach();};"""
     [Modules.Graphic3d]
 
         include_header_pre = """#include <Media_PlayerContext.hxx>
-struct NSOpenGLContext {};"""
+struct NSOpenGLContext {};
+using CallbackOnUpdate_t = Graphic3d_MediaTextureSet::CallbackOnUpdate_t;
+using CullingContext = Graphic3d_CullingTool::CullingContext;"""
         exclude_typedefs = ["Graphic3d_IndexedMapOfView","Graphic3d_IndexedMapOfAddress","Graphic3d_MapOfStructure","Graphic3d_NMapOfTransient","Graphic3d_MapOfObject","Graphic3d_Vec4u","Graphic3d_Vec2u","Graphic3d_Vec3u","Graphic3d_Vec3d","Graphic3d_MapOfAspectsToAspects",
             "Graphic3d_BndBox4d","Graphic3d_BndBox3d","Graphic3d_BndBox4f", "Graphic3d_IndexedMapOfStructure", "Graphic3d_ArrayOfIndexedMapOfStructure"]
         exclude_methods = ["Graphic3d_BvhCStructureSet::Size","Graphic3d_BvhCStructureSet::Box",
@@ -1110,6 +1127,14 @@ struct __GLXFBConfigRec {};"""
             help = "SetValue supporting python objects"
             arguments  = ["ent"]
 
+    [Modules.BRepGProp]
+
+        include_header_pre = "using BRepGProp_MeshObjType = BRepGProp_MeshProps::BRepGProp_MeshObjType;"
+
+    [Modules.ShapeProcess]
+
+        include_header_pre = "using Operation = ShapeProcess::Operation;"
+
     [Modules.LDOM]
 
         exclude_classes = ["LDOMString","LDOM_MemManager","LDOM_BasicText"]
@@ -1179,7 +1204,7 @@ struct __GLXFBConfigRec {};"""
 
         include_header_pre = """#include <BOPDS_Iterator.hxx>
 #include <BOPDS_DS.hxx>
-"""
+using PeriodicityParams = BOPAlgo_MakePeriodic::PeriodicityParams;"""
 
     [Modules.VrmlAPI]
 
@@ -1210,6 +1235,7 @@ using std::char_traits;
 
     [Modules.Message]
 
+        include_header_pre = "using StreamBuffer = Message_Messenger::StreamBuffer;"
         exclude_classes = ["Message_LazyProgressScope"]
 
         [Modules.Message.Classes.Message_ProgressScope]
@@ -1246,6 +1272,8 @@ using rapidjson::BasicOStreamWrapper;"""
 
     [Modules.IntPatch]
 
+        include_header_pre = "using IntPatch_WLType = IntPatch_WLine::IntPatch_WLType;"
+
         [Modules.IntPatch.parsing_headers]
 
             "IntPatch_PolyhedronTool.hxx" = "#include <IntPatch_Polyhedron.hxx>"
@@ -1257,6 +1285,10 @@ using rapidjson::BasicOStreamWrapper;"""
             "ShapeConstruct_ProjectCurveOnSurface.hxx" = "#include <TColStd_HArray1OfReal.hxx>"
 
     [Modules.HLRAlgo]
+
+        include_header_pre = """using Box = HLRAlgo_PolyData::Box;
+using Triangle = HLRAlgo_PolyData::Triangle;
+using IndicesT = HLRAlgo_BiPoint::IndicesT;"""
 
         [Modules.HLRAlgo.parsing_headers]
 

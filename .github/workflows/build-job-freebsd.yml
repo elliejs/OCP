@@ -1,0 +1,148 @@
+name: Build Bindings (FreeBSD)
+
+# FreeBSD cannot use micromamba/conda-forge (no FreeBSD packages exist).
+# Uses vmactions/freebsd-vm to run in a FreeBSD bhyve VM on a Linux runner,
+# with system packages (pkg) instead of conda environments.
+#
+# pkg provides most dependencies but its numpy is 1.x — build123d and
+# the binding generator need numpy 2.x, so numpy/pandas/bottleneck/numexpr
+# are upgraded via pip after pkg install.
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string
+
+env:
+  FBSD_PKGS: >-
+    opencascade llvm-devel cmake ninja pybind11 py311-pybind11 vtk9
+    rapidjson libfmt python311 py311-pip py311-numpy py311-joblib
+    py311-Jinja2 py311-click py311-toml py311-pyparsing py311-tqdm
+    py311-lief gcc
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Phase 1: Generate bindings (skipped on cache hit — saves ~1 hour)
+  # ---------------------------------------------------------------------------
+  generate:
+    name: Generate ${{ inputs.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: true
+
+      - name: Restore OCP_src cache
+        id: cache-ocp-src-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: build/OCP
+          key: OCP-src-${{ inputs.platform }}-
+
+      - name: Generate bindings on FreeBSD
+        if: steps.cache-ocp-src-restore.outputs.cache-hit != 'true'
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: '15.0'
+          usesh: true
+          prepare: |
+            pkg install -y ${{ env.FBSD_PKGS }}
+
+            pip install --break-system-packages \
+              'numpy>=2' \
+              --force-reinstall --no-binary numpy
+
+            pip install --break-system-packages \
+              --force-reinstall --no-binary pandas,bottleneck,numexpr \
+              pandas bottleneck numexpr
+
+            pip install --break-system-packages \
+              logzero path schema toposort clang pybind11-stubgen
+
+          run: |
+            set -ex
+            cmake -S . -B build -G Ninja \
+              -DCMAKE_PREFIX_PATH="/usr/local;/usr/local/llvm-devel"
+            cmake --build build
+
+      - name: Cache OCP_src
+        if: steps.cache-ocp-src-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/OCP
+          key: ${{ steps.cache-ocp-src-restore.outputs.cache-primary-key }}
+
+  # ---------------------------------------------------------------------------
+  # Phase 2: Compile + test + stubs
+  # ---------------------------------------------------------------------------
+  compile:
+    name: Compile ${{ inputs.name }} (3.${{ matrix.py_min }})
+    needs: generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        py_min: ['11']
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: true
+
+      - name: Restore OCP_src cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build/OCP
+          key: OCP-src-${{ inputs.platform }}-
+
+      - name: Compile and test on FreeBSD
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: '15.0'
+          usesh: true
+          prepare: |
+            pkg install -y ${{ env.FBSD_PKGS }}
+            pip install --break-system-packages pybind11-stubgen
+
+          run: |
+            set -ex
+
+            cmake -B build_native -S build/OCP -G Ninja \
+              -DCMAKE_PREFIX_PATH="/usr/local;/usr/local/llvm-devel" \
+              -DCMAKE_BUILD_TYPE=Release
+
+            ninja -C build_native -j 2 -k 0
+
+            # --- Test ---
+            cp build_native/OCP.cpython-311.so /usr/local/lib/python3.11/site-packages/OCP/ 2>/dev/null || true
+            cd build_native && python3.11 -c "import OCP; print('OCP import OK')"
+
+            # --- Generate stubs ---
+            cd ${GITHUB_WORKSPACE}/build_native
+            python3.11 -m pybind11_stubgen -o ${GITHUB_WORKSPACE}/stubs OCP
+
+      - name: Upload Sources
+        uses: actions/upload-artifact@v5
+        with:
+          name: OCP_src_${{ inputs.platform }}
+          path: build/OCP
+
+      - name: Upload Compilation
+        uses: actions/upload-artifact@v5
+        with:
+          name: OCP_${{ inputs.platform }}_py3${{ matrix.py_min }}
+          path: build_native/OCP.cpython-*.so
+
+      - name: Upload Stubs
+        uses: actions/upload-artifact@v5
+        with:
+          name: OCP_stubs_${{ inputs.platform }}_py3${{ matrix.py_min }}
+          path: stubs/OCP
