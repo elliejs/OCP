@@ -1,0 +1,62 @@
+name: Release from existing run
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Build Bindings run ID to create release from'
+        required: true
+        type: string
+      tag:
+        description: 'Release tag (e.g. 7.9.3.1.1)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Create release from run artifacts
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download and package artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -ex
+          RUN_ID="${{ inputs.run_id }}"
+
+          # Pick one Python version for stubs (sources are identical across py versions)
+          PY="py313"
+
+          for PLATFORM in Linux OSX Windows; do
+            echo "=== Packaging ${PLATFORM} ==="
+            ARTIFACT="OCP_src_stubs_${PLATFORM}_${PY}"
+            DIR="OCP_src_stubs_${PLATFORM}"
+
+            gh run download "${RUN_ID}" --name "${ARTIFACT}" --dir "${DIR}"
+            zip -r "${DIR}.zip" "${DIR}"
+            rm -rf "${DIR}"
+          done
+
+          # FreeBSD uses py311 and follows the same artifact naming
+          echo "=== Packaging FreeBSD ==="
+          ARTIFACT="OCP_src_stubs_FreeBSD_py311"
+          DIR="OCP_src_stubs_FreeBSD"
+          gh run download "${RUN_ID}" --name "${ARTIFACT}" --dir "${DIR}"
+          zip -r "${DIR}.zip" "${DIR}"
+          rm -rf "${DIR}"
+
+          echo "=== Packaged zips ==="
+          ls -lh *.zip
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: Release ${{ inputs.tag }}
+          files: "*.zip"
+          fail_on_unmatched_files: true

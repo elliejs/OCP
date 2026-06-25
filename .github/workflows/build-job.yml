@@ -280,7 +280,7 @@ jobs:
           micromamba activate build
           
           # Determine flags based on event
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          if [[ "${{ github.event_name }}" == "pull_request" ]] || [[ -z "$TOKEN" ]]; then
             echo "Building for PR..."
             conda build -c conda-forge --override-channels conda
           else

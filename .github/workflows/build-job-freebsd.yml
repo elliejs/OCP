@@ -13,6 +13,15 @@ on:
       platform:
         required: true
         type: string
+  workflow_dispatch:
+    inputs:
+      name:
+        default: FreeBSD
+        type: string
+      platform:
+        default: FreeBSD
+        type: string
+
 env:
   FBSD_PKGS: >-
     opencascade llvm-devel cmake ninja pybind11 py311-pybind11 vtk9
