@@ -7,21 +7,30 @@ libs = sys.argv[-1].split(';')
 
 exported_symbols = []
 
+# lief <0.14 uses lief.EXE_FORMATS; 0.14+ uses lief.Binary.FORMATS
+FORMATS = getattr(lief, 'EXE_FORMATS', None) or lief.Binary.FORMATS
+
 for lib in libs:
 
     logger.info(f'Analyzing {lib}')
 
-    p = lief.parse(lib)
-    format = p.format
-
-    if p is None:
+    lib = lib.strip()
+    if not lib:
         continue
 
-    if format==p.FORMATS.ELF:
-        name = "linux"
+    p = lief.parse(lib)
+
+    if p is None:
+        raise RuntimeError(f'lief.parse failed for {lib!r}')
+
+    format = p.format
+
+    if format == FORMATS.ELF:
+        import platform as _platform
+        name = "freebsd" if _platform.system() == "FreeBSD" else "linux"
         for s in p.exported_symbols:
             exported_symbols.append(f'{s.name}\n')
-    elif format==p.FORMATS.MACHO:
+    elif format == FORMATS.MACHO:
         name = "mac"
         for s in p.symbols:
             if s.raw_type>1:

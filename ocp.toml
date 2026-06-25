@@ -390,6 +390,14 @@ class Adaptor3d_Surface;
     exclude_classes = ["Handle_*"]
     symbols = "symbols_mangled_win.dat"
 
+[FreeBSD]
+    modules = ["Xw"]
+    symbols = "symbols_mangled_freebsd.dat"
+    includes = ['/usr/include/c++/v1',
+                '/usr/local/llvm-devel/lib/clang/22/include',
+                '/usr/local/include',
+                '/usr/include']
+
 [OSX]
     modules = ["Cocoa"]
     symbols = "symbols_mangled_mac.dat"
