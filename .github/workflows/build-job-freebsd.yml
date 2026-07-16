@@ -15,11 +15,11 @@ on:
         type: string
 env:
   FBSD_PKGS: >-
-    opencascade llvm21 cmake ninja pybind11 py311-pybind11 vtk9
-    rapidjson libfmt python311 py311-numpy py311-pandas py311-joblib
-    py311-Jinja2 py311-click py311-toml py311-pyparsing py311-tqdm
-    py311-lief py311-pip py311-logzero py311-path py311-schema
-    py311-toposort py311-pybind11-stubgen gcc
+    opencascade llvm21 cmake ninja pybind11 py312-pybind11 vtk9
+    rapidjson libfmt python312 py312-numpy py312-pandas py312-joblib
+    py312-Jinja2 py312-click py312-toml py312-pyparsing py312-tqdm
+    py312-lief py312-pip py312-logzero py312-path py312-schema
+    py312-toposort py312-pybind11-stubgen gcc
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -50,7 +50,7 @@ jobs:
           usesh: true
           prepare: |
             pkg install -y ${{ env.FBSD_PKGS }}
-            python3.11 -m pip install clang
+            python3.12 -m pip install clang
 
           run: |
             set -ex
@@ -76,7 +76,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py_min: ['11']
+        py_min: ['12']
 
     steps:
       - uses: actions/checkout@v5
@@ -107,11 +107,11 @@ jobs:
             ninja -C build_native -j 2 -k 0
 
             # --- Test ---
-            cd build_native && python3.11 -c "import OCP; print('OCP import OK')"
+            cd build_native && python3.12 -c "import OCP; print('OCP import OK')"
 
             # --- Generate stubs ---
             cd ${GITHUB_WORKSPACE}/build_native
-            python3.11 -m pybind11_stubgen -o . OCP
+            python3.12 -m pybind11_stubgen -o . OCP
             # --- Prepare upload (sources + stubs) ---
             mkdir -p ${GITHUB_WORKSPACE}/upload
             cp -r ${GITHUB_WORKSPACE}/build/OCP ${GITHUB_WORKSPACE}/upload/
