@@ -147,7 +147,6 @@ jobs:
       n_cores: 2
       PYTHON_VERSION: 3.${{ matrix.py_min }}
       STAGE: "compile"
-      ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -268,18 +267,50 @@ jobs:
              python -c"import OCP"
           fi
 
-      # --- Conda Packaging ---
+  # -----------------------------------------------------------------------------
+  # PHASE 3: Conda Packaging (only on CadQuery repo, not forks)
+  # -----------------------------------------------------------------------------
+  conda:
+    needs: compile
+    if: github.repository == 'CadQuery/OCP'
+    name: Conda ${{ inputs.name }} (3.${{ matrix.py_min }})
+    runs-on: ${{ inputs.runner_compile }}
+    strategy:
+      fail-fast: false
+      matrix:
+        py_min: [10, 11, 12, 13]
+
+    env:
+      PYTHON_VERSION: 3.${{ matrix.py_min }}
+      ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Compilation Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: OCP_${{ inputs.platform }}_py3${{ matrix.py_min }}
+          path: build
+
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-name: build
+          init-shell: bash
+          create-args: >-
+            python=${{ env.PYTHON_VERSION }}
+            liblief=0.14.1
+            conda-build
+            anaconda-client
+
       - name: Build Conda Package
         shell: bash -l {0}
         env:
           BUILD_STRING: "1"
           TOKEN: ${{ secrets.ANACONDA_TOKEN }}
         run: |
-          # Install build tools in a fresh env
-          micromamba create -n build -y -c conda-forge python=3.11 liblief=0.14.1 conda-build anaconda-client
           micromamba activate build
-          
-          # Determine flags based on event
+
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             echo "Building for PR..."
             conda build -c conda-forge --override-channels conda
