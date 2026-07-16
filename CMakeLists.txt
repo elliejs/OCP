@@ -62,11 +62,15 @@ message( STATUS "Include dirs: ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES}")
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     list( APPEND CXX_INCLUDES -i /opt/usr/local/include/c++/v1/ -i /opt/usr/local/include/ )
 
-# Linux-like
+# Linux-like (including FreeBSD)
 elseif(NOT PLATFORM STREQUAL "Windows")
-    foreach( inc IN LISTS CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES)
-        list( APPEND CXX_INCLUDES -i ${inc}/ )
-    endforeach()
+    # On FreeBSD, libclang finds system headers on its own; explicit -I flags
+    # break #include_next chains (nullptr_t undefined).
+    if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+        foreach( inc IN LISTS CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES)
+            list( APPEND CXX_INCLUDES -i ${inc}/ )
+        endforeach()
+    endif()
 
 # X-generation from Linux to Windows
 else()
@@ -99,9 +103,15 @@ else()
         set(PLATFORM Windows)
     elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         set(PLATFORM OSX)
+    elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+        set(PLATFORM FreeBSD)
     else()
         set(PLATFORM Linux)
     endif()
+endif()
+
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    set(CLANG_RESOURCE_INCLUDE -i ${CLANG_INSTALL_PREFIX}/lib/clang/${LLVM_VERSION_MAJOR}/include/)
 endif()
 
 set(ENV{PYTHONPATH} ${CMAKE_SOURCE_DIR}/pywrap )
@@ -117,7 +127,7 @@ add_custom_command(
         -i ${VTK_INCLUDE_DIR}/
         -i ${OPENGL_INCLUDE_DIRS}
         -i ${RapidJSON_INCLUDE_DIRS}
-        -i ${CLANG_INSTALL_PREFIX}/lib/clang/${LLVM_VERSION_MAJOR}/include/
+        ${CLANG_RESOURCE_INCLUDE}
         -p ${CMAKE_SOURCE_DIR}
         ${CXX_INCLUDES}
         all ${CMAKE_SOURCE_DIR}/ocp.toml ${PLATFORM}

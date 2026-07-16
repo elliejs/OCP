@@ -1,0 +1,130 @@
+name: Build Bindings (FreeBSD)
+
+# FreeBSD cannot use micromamba/conda-forge (no FreeBSD packages exist).
+# Uses vmactions/freebsd-vm to run in a FreeBSD bhyve VM on a Linux runner,
+# with system packages (pkg "latest" repo) instead of conda environments.
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string
+env:
+  FBSD_PKGS: >-
+    opencascade llvm-devel cmake ninja pybind11 py311-pybind11 vtk9
+    rapidjson libfmt python311 py311-numpy py311-pandas py311-joblib
+    py311-Jinja2 py311-click py311-toml py311-pyparsing py311-tqdm
+    py311-lief py311-pip py311-logzero py311-path py311-schema
+    py311-toposort py311-pybind11-stubgen gcc
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Phase 1: Generate bindings
+  # ---------------------------------------------------------------------------
+  generate:
+    name: Generate ${{ inputs.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: true
+
+      - name: Restore OCP_src cache
+        id: cache-ocp-src-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: build/OCP
+          key: OCP-src-${{ inputs.platform }}-
+
+      - name: Generate bindings on FreeBSD
+        if: steps.cache-ocp-src-restore.outputs.cache-hit != 'true'
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: '15.0'
+          usesh: true
+          prepare: |
+            pkg install -y ${{ env.FBSD_PKGS }}
+            python3.11 -m pip install clang
+
+          run: |
+            set -ex
+            cmake -S . -B build -G Ninja \
+              -DCMAKE_PREFIX_PATH="/usr/local;/usr/local/llvm-devel"
+            cmake --build build
+
+      - name: Cache OCP_src
+        if: steps.cache-ocp-src-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/OCP
+          key: ${{ steps.cache-ocp-src-restore.outputs.cache-primary-key }}
+
+  # ---------------------------------------------------------------------------
+  # Phase 2: Compile + test + stubs
+  # ---------------------------------------------------------------------------
+  compile:
+    name: Compile ${{ inputs.name }} (3.${{ matrix.py_min }})
+    needs: generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        py_min: ['11']
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: true
+
+      - name: Restore OCP_src cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build/OCP
+          key: OCP-src-${{ inputs.platform }}-
+
+      - name: Compile and test on FreeBSD
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: '15.0'
+          usesh: true
+          prepare: |
+            pkg install -y ${{ env.FBSD_PKGS }}
+
+          run: |
+            set -ex
+
+            cmake -B build_native -S build/OCP -G Ninja \
+              -DCMAKE_PREFIX_PATH="/usr/local;/usr/local/llvm-devel" \
+              -DCMAKE_BUILD_TYPE=Release
+
+            ninja -C build_native -j 2 -k 0
+
+            # --- Test ---
+            cd build_native && python3.11 -c "import OCP; print('OCP import OK')"
+
+            # --- Generate stubs ---
+            cd ${GITHUB_WORKSPACE}/build_native
+            python3.11 -m pybind11_stubgen -o . OCP
+            # --- Prepare upload (sources + stubs) ---
+            mkdir -p ${GITHUB_WORKSPACE}/upload
+            cp -r ${GITHUB_WORKSPACE}/build/OCP ${GITHUB_WORKSPACE}/upload/
+            cp -r OCP ${GITHUB_WORKSPACE}/upload/OCP-stubs
+
+      - name: Upload Compilation
+        uses: actions/upload-artifact@v5
+        with:
+          name: OCP_${{ inputs.platform }}_py3${{ matrix.py_min }}
+          path: build_native/OCP.cpython-*.so
+
+      - name: Upload Sources and Stubs
+        uses: actions/upload-artifact@v5
+        with:
+          name: OCP_src_stubs_${{ inputs.platform }}_py3${{ matrix.py_min }}
+          path: upload
