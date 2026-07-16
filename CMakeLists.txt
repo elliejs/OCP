@@ -64,13 +64,9 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 
 # Linux-like (including FreeBSD)
 elseif(NOT PLATFORM STREQUAL "Windows")
-    # On FreeBSD, libclang finds system headers on its own; explicit -I flags
-    # break #include_next chains (nullptr_t undefined).
-    if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-        foreach( inc IN LISTS CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES)
-            list( APPEND CXX_INCLUDES -i ${inc}/ )
-        endforeach()
-    endif()
+    foreach( inc IN LISTS CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES)
+        list( APPEND CXX_INCLUDES -i ${inc}/ )
+    endforeach()
 
 # X-generation from Linux to Windows
 else()
@@ -110,10 +106,6 @@ else()
     endif()
 endif()
 
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    set(CLANG_RESOURCE_INCLUDE -i ${CLANG_INSTALL_PREFIX}/lib/clang/${LLVM_VERSION_MAJOR}/include/)
-endif()
-
 set(ENV{PYTHONPATH} ${CMAKE_SOURCE_DIR}/pywrap )
 
 add_custom_command(
@@ -127,7 +119,7 @@ add_custom_command(
         -i ${VTK_INCLUDE_DIR}/
         -i ${OPENGL_INCLUDE_DIRS}
         -i ${RapidJSON_INCLUDE_DIRS}
-        ${CLANG_RESOURCE_INCLUDE}
+        -i ${CLANG_INSTALL_PREFIX}/lib/clang/${LLVM_VERSION_MAJOR}/include/
         -p ${CMAKE_SOURCE_DIR}
         ${CXX_INCLUDES}
         all ${CMAKE_SOURCE_DIR}/ocp.toml ${PLATFORM}

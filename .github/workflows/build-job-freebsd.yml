@@ -15,7 +15,7 @@ on:
         type: string
 env:
   FBSD_PKGS: >-
-    opencascade llvm-devel cmake ninja pybind11 py311-pybind11 vtk9
+    opencascade llvm21 cmake ninja pybind11 py311-pybind11 vtk9
     rapidjson libfmt python311 py311-numpy py311-pandas py311-joblib
     py311-Jinja2 py311-click py311-toml py311-pyparsing py311-tqdm
     py311-lief py311-pip py311-logzero py311-path py311-schema
@@ -55,7 +55,7 @@ jobs:
           run: |
             set -ex
             cmake -S . -B build -G Ninja \
-              -DCMAKE_PREFIX_PATH="/usr/local;/usr/local/llvm-devel"
+              -DCMAKE_PREFIX_PATH="/usr/local;/usr/local/llvm21"
             cmake --build build
 
       - name: Cache OCP_src
@@ -101,7 +101,7 @@ jobs:
             set -ex
 
             cmake -B build_native -S build/OCP -G Ninja \
-              -DCMAKE_PREFIX_PATH="/usr/local;/usr/local/llvm-devel" \
+              -DCMAKE_PREFIX_PATH="/usr/local;/usr/local/llvm21" \
               -DCMAKE_BUILD_TYPE=Release
 
             ninja -C build_native -j 2 -k 0
