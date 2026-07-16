@@ -35,15 +35,14 @@ jobs:
         with:
           submodules: true
 
-      - name: Restore OCP_src cache
-        id: cache-ocp-src-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: build/OCP
-          key: OCP-src-${{ inputs.platform }}-
+      # - name: Restore OCP_src cache
+      #   id: cache-ocp-src-restore
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: build/OCP
+      #     key: OCP-src-${{ inputs.platform }}-
 
       - name: Generate bindings on FreeBSD
-        if: steps.cache-ocp-src-restore.outputs.cache-hit != 'true'
         uses: vmactions/freebsd-vm@v1
         with:
           release: '15.0'
@@ -59,11 +58,10 @@ jobs:
             cmake --build build
 
       - name: Cache OCP_src
-        if: steps.cache-ocp-src-restore.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: build/OCP
-          key: ${{ steps.cache-ocp-src-restore.outputs.cache-primary-key }}
+          key: OCP-src-${{ inputs.platform }}-${{ github.sha }}
 
   # ---------------------------------------------------------------------------
   # Phase 2: Compile + test + stubs
@@ -87,7 +85,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: build/OCP
-          key: OCP-src-${{ inputs.platform }}-
+          key: OCP-src-${{ inputs.platform }}-${{ github.sha }}
 
       - name: Compile and test on FreeBSD
         uses: vmactions/freebsd-vm@v1
