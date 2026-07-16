@@ -2,9 +2,7 @@ cmake_minimum_required( VERSION 3.17 )
 project( {{ name }}
          LANGUAGES CXX )
 
-if( NOT WIN32 )
-    enable_language( C )
-endif()
+enable_language( C )
 
 list( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} )
 
@@ -23,6 +21,8 @@ find_package( VTK REQUIRED
     CommonDataModel
     CommonExecutionModel
     freetype
+  OPTIONAL_COMPONENTS
+    mpi
 )
 message(STATUS "VTK ${VTK_VERSION} found")
 find_package( OpenCASCADE REQUIRED )
