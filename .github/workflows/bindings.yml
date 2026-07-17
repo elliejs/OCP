@@ -39,3 +39,9 @@ jobs:
       platform: OSX
     secrets:
       ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+
+  FreeBSD:
+    uses: ./.github/workflows/build-job-freebsd.yml
+    with:
+      name: FreeBSD
+      platform: FreeBSD
